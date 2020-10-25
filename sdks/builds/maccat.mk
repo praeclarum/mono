@@ -13,41 +13,67 @@ ADDITIONAL_PACKAGE_DEPS += $(maccat_BIN_DIR) $(maccat_PKG_CONFIG_DIR) $(maccat_L
 #  $(1): target
 #  $(2): host arch
 #  $(3): xcode dir
-define MacTemplate
+define MacCatTemplate
 
 maccat_$(1)_PLATFORM_BIN=$(3)/Toolchains/XcodeDefault.xctoolchain/usr/bin
 
-_maccat-$(1)_CC=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang
-_maccat-$(1)_CXX=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang++
+_maccat-$(1)_CC=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang -target $(2)-apple-ios13.6-macabi
+_maccat-$(1)_CXX=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang++ -target $(2)-apple-ios13.6-macabi
 
 _maccat-$(1)_AC_VARS= \
+	ac_cv_func_system=no \
+	ac_cv_c_bigendian=no \
 	ac_cv_func_fstatat=no \
 	ac_cv_func_readlinkat=no \
+	ac_cv_func_getpwuid_r=no \
+	ac_cv_func_posix_getpwuid_r=yes \
+	ac_cv_header_curses_h=no \
+	ac_cv_header_localcharset_h=no \
+	ac_cv_header_sys_user_h=no \
+	ac_cv_func_getentropy=no \
 	ac_cv_func_futimens=no \
-	ac_cv_func_utimensat=no
+	ac_cv_func_utimensat=no \
+	ac_cv_func_shm_open_working_with_mmap=no \
+	mono_cv_sizeof_sunpath=104
 
 _maccat-$(1)_CFLAGS= \
 	$$(maccat-$(1)_SYSROOT) \
-	-arch $(2)
+	-target $(2)-apple-ios13.6-macabi \
+	-fexceptions
 
 _maccat-$(1)_CXXFLAGS= \
 	$$(maccat-$(1)_SYSROOT) \
-	-arch $(2)
+	-target $(2)-apple-ios13.6-macabi
 
-_maccat-$(1)_CPPFLAGS=
+_maccat-$(1)_CPPFLAGS= \
+	-target $(2)-apple-ios13.6-macabi \
+	-DSMALL_CONFIG -D_XOPEN_SOURCE -DHOST_IOS -DHOST_MACCAT -DHAVE_LARGE_FILE_SUPPORT=1
 
 _maccat-$(1)_LDFLAGS= \
-	-Wl,-no_weak_imports
+	-target $(2)-apple-ios13.6-macabi \
+	-iframework $(XCODE_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(MACOS_VERSION).sdk/System/iOSSupport/System/Library/Frameworks \
+	-framework CoreFoundation \
+	-lobjc -lc++
 
 _maccat-$(1)_CONFIGURE_FLAGS= \
 	--disable-boehm \
 	--disable-btls \
+	--disable-executables \
 	--disable-iconv \
 	--disable-mcs-build \
 	--disable-nls \
+	--disable-visibility-hidden \
+	--enable-dtrace=no \
 	--enable-maintainer-mode \
-	--with-glib=embedded \
-	--with-mcs-docs=no
+	--enable-minimal=ssa,com,interpreter,portability,assembly_remapping,attach,verifier,full_messages,appdomains,security,sgen_remset,sgen_marksweep_par,sgen_marksweep_fixed,sgen_marksweep_fixed_par,sgen_copying,logging,remoting,shared_perfcounters,gac \
+	--enable-monotouch \
+	--with-lazy-gc-thread-creation=yes \
+	--with-tls=pthread \
+	--without-ikvm-native \
+	--without-sigaltstack \
+	--disable-cooperative-suspend \
+	--disable-hybrid-suspend \
+	--disable-crash-reporting
 
 .stamp-maccat-$(1)-toolchain:
 	touch $$@
@@ -56,11 +82,11 @@ $$(eval $$(call RuntimeTemplate,maccat,$(1),$(2)-apple-darwin10,yes))
 
 endef
 
-maccat-mac64_SYSROOT=-isysroot $(XCODE_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(MACOS_VERSION).sdk -mmacosx-version-min=$(MACOS_VERSION_MIN)
+maccat-mac64_SYSROOT=-isysroot $(XCODE_DIR)/Platforms/MacOSX.platform/Developer/SDKs/MacOSX$(MACOS_VERSION).sdk
 
-$(eval $(call MacTemplate,mac64,x86_64,$(XCODE_DIR)))
+$(eval $(call MacCatTemplate,mac64,x86_64,$(XCODE_DIR)))
 
-$(eval $(call BclTemplate,maccat,xammac xammac_net_4_5,xammac xammac_net_4_5))
+$(eval $(call BclTemplate,maccat,monotouch,monotouch))
 
 $(maccat_BIN_DIR): package-maccat-mac64
 	rm -rf $(maccat_BIN_DIR)
@@ -79,17 +105,14 @@ $(maccat_LIBS_DIR): package-maccat-mac64
 	mkdir -p $(maccat_LIBS_DIR)
 
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmonosgen-2.0.dylib        $(maccat_LIBS_DIR)/libmonosgen-2.0.dylib
-	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native-compat.dylib  $(maccat_LIBS_DIR)/libmono-native-compat.dylib
-	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native-unified.dylib $(maccat_LIBS_DIR)/libmono-native-unified.dylib
+	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native.dylib         $(maccat_LIBS_DIR)/libmono-native-compat.dylib
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libMonoPosixHelper.dylib     $(maccat_LIBS_DIR)/libMonoPosixHelper.dylib
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmonosgen-2.0.a            $(maccat_LIBS_DIR)/libmonosgen-2.0.a
-	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native-compat.a      $(maccat_LIBS_DIR)/libmono-native-compat.a
-	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native-unified.a     $(maccat_LIBS_DIR)/libmono-native-unified.a
+	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native.a             $(maccat_LIBS_DIR)/libmono-native-compat.a
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-profiler-log.a       $(maccat_LIBS_DIR)/libmono-profiler-log.a
 
 	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libmonosgen-2.0.dylib        $(maccat_LIBS_DIR)/libmonosgen-2.0.dylib
-	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libmono-native-compat.dylib  $(maccat_LIBS_DIR)/libmono-native-compat.dylib
-	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libmono-native-unified.dylib $(maccat_LIBS_DIR)/libmono-native-unified.dylib
+	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libmono-native.dylib         $(maccat_LIBS_DIR)/libmono-native-compat.dylib
 	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libMonoPosixHelper.dylib     $(maccat_LIBS_DIR)/libMonoPosixHelper.dylib
 
 $(maccat_MONO_VERSION): $(TOP)/configure.ac
