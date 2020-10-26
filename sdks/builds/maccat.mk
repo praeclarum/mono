@@ -105,14 +105,14 @@ $(maccat_LIBS_DIR): package-maccat-mac64
 	mkdir -p $(maccat_LIBS_DIR)
 
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmonosgen-2.0.dylib        $(maccat_LIBS_DIR)/libmonosgen-2.0.dylib
-	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native.dylib         $(maccat_LIBS_DIR)/libmono-native-compat.dylib
+	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native.dylib         $(maccat_LIBS_DIR)/libmono-native.dylib
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libMonoPosixHelper.dylib     $(maccat_LIBS_DIR)/libMonoPosixHelper.dylib
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmonosgen-2.0.a            $(maccat_LIBS_DIR)/libmonosgen-2.0.a
-	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native.a             $(maccat_LIBS_DIR)/libmono-native-compat.a
+	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-native.a             $(maccat_LIBS_DIR)/libmono-native.a
 	cp $(TOP)/sdks/out/maccat-mac64-$(CONFIGURATION)/lib/libmono-profiler-log.a       $(maccat_LIBS_DIR)/libmono-profiler-log.a
 
 	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libmonosgen-2.0.dylib        $(maccat_LIBS_DIR)/libmonosgen-2.0.dylib
-	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libmono-native.dylib         $(maccat_LIBS_DIR)/libmono-native-compat.dylib
+	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libmono-native.dylib         $(maccat_LIBS_DIR)/libmono-native.dylib
 	$(maccat_mac64_PLATFORM_BIN)/install_name_tool -id @rpath/libMonoPosixHelper.dylib     $(maccat_LIBS_DIR)/libMonoPosixHelper.dylib
 
 $(maccat_MONO_VERSION): $(TOP)/configure.ac
