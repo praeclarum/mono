@@ -17,8 +17,13 @@ define MacCatTemplate
 
 maccat_$(1)_PLATFORM_BIN=$(3)/Toolchains/XcodeDefault.xctoolchain/usr/bin
 
-_maccat-$(1)_CC=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang -target $(2)-apple-ios13.6-macabi
-_maccat-$(1)_CXX=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang++ -target $(2)-apple-ios13.6-macabi
+#
+# HACK: fak: The -target is placed in the CC define per the recommendation of
+# libtool who acknowledge that some parameters are just not passed through
+# to the compiler. You can use -Wc, flags, but I failed to get the working appropriately.
+#
+_maccat-$(1)_CC=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang -target $(2)-apple-ios13.0-macabi
+_maccat-$(1)_CXX=$$(CCACHE) $$(maccat_$(1)_PLATFORM_BIN)/clang++ -target $(2)-apple-ios13.0-macabi
 
 _maccat-$(1)_AC_VARS= \
 	ac_cv_func_system=no \
@@ -38,15 +43,12 @@ _maccat-$(1)_AC_VARS= \
 
 _maccat-$(1)_CFLAGS= \
 	$$(maccat-$(1)_SYSROOT) \
-	-target $(2)-apple-ios13.6-macabi \
 	-fexceptions
 
 _maccat-$(1)_CXXFLAGS= \
-	$$(maccat-$(1)_SYSROOT) \
-	-target $(2)-apple-ios13.6-macabi
+	$$(maccat-$(1)_SYSROOT)
 
 _maccat-$(1)_CPPFLAGS= \
-	-target $(2)-apple-ios13.6-macabi \
 	-DSMALL_CONFIG -D_XOPEN_SOURCE -DHOST_IOS -DHOST_MACCAT -DHAVE_LARGE_FILE_SUPPORT=1
 
 _maccat-$(1)_LDFLAGS= \
